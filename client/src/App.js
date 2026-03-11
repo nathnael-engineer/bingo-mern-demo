@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
@@ -13,8 +13,18 @@ function generateCard() {
 }
 
 function App() {
-  // Landing page state
+  // Landing page state with localStorage
   const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("started");
+    if (saved === "true") setStarted(true);
+  }, []);
+
+  const handleStart = () => {
+    setStarted(true);
+    localStorage.setItem("started", "true");
+  };
 
   // Bingo game state
   const [card] = useState(generateCard());
@@ -52,7 +62,7 @@ function App() {
           Play online Bingo instantly! Challenge yourself or friends.
         </p>
         <button
-          onClick={() => setStarted(true)}
+          onClick={handleStart}
           style={{
             marginTop: "20px",
             padding: "10px 20px",
