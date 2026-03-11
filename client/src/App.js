@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 
+const API_URL = "https://bingo-mern-demo.onrender.com";
+
 function generateCard() {
   const numbers = [];
   while (numbers.length < 25) {
@@ -16,14 +18,14 @@ function App() {
   const [lastNumber, setLastNumber] = useState(null);
 
   const callNumber = async () => {
-    const res = await axios.get("http://localhost:5000/number");
+    const res = await axios.get(`${API_URL}/number`);
 
     setLastNumber(res.data.number);
     setCalled([...called, res.data.number]);
   };
 
   const resetGame = async () => {
-    await axios.get("http://localhost:5000/reset");
+    await axios.get(`${API_URL}/reset`);
     setCalled([]);
     setLastNumber(null);
   };
