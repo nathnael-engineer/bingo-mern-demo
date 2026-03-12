@@ -211,11 +211,24 @@ function App() {
       <button onClick={callNumber} disabled={gameOver}>
         Call Number
       </button>
-      <button onClick={resetGame} style={{ marginLeft: "10px" }}>
+      <button onClick={resetGame} disabled={!gameOver} style={{ marginLeft: "10px" }}>
         Reset Game
       </button>
 
-      <h2>Last Called Number: {lastNumber ?? "None"}</h2>
+      <h2>
+        Last Called Number:{" "}
+        <span
+          style={{
+            background: "#ff416c",
+            padding: "8px 16px",
+            borderRadius: "8px",
+            color: "white",
+            marginLeft: "10px"
+          }}
+        > 
+          {lastNumber ?? "None"}
+        </span>
+      </h2>
 
       {/* Notification Box */}
       {notification && (
@@ -256,8 +269,14 @@ function App() {
           gap: "10px",
           justifyContent: "center",
           marginTop: "20px",
+          fontWeight: "bold",
+          fontSize: "20px"
         }}
       >
+        {["B","I","N","G","O"].map((letter) => (
+          <div key={letter}>{letter}</div>
+        ))}
+        
         {card.map((num, i) => (
           <div
             key={i}
