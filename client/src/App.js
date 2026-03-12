@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
 
+// Generate a random Bingo card
 function generateCard() {
   const numbers = [];
   while (numbers.length < 25) {
@@ -13,40 +14,36 @@ function generateCard() {
 }
 
 function App() {
-  const [started, setStarted] = useState(false);
-  const [card, setCard] = useState([]);
-  const [called, setCalled] = useState([]);
-  const [lastNumber, setLastNumber] = useState(null);
+  // Helper to get localStorage with fallback
+  const getLocalStorage = (key, fallback) => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  };
 
-  useEffect(() => {
-    const savedStarted = localStorage.getItem("started");
-    const savedCard = localStorage.getItem("card");
-    const savedCalled = localStorage.getItem("called");
-    const savedLast = localStorage.getItem("lastNumber");
+  // State initialization with localStorage (prevents landing page flash)
+  const [started, setStarted] = useState(
+    () => localStorage.getItem("started") === "true"
+  );
+  const [card, setCard] = useState(() => getLocalStorage("card", generateCard()));
+  const [called, setCalled] = useState(() => getLocalStorage("called", []));
+  const [lastNumber, setLastNumber] = useState(() =>
+    getLocalStorage("lastNumber", null)
+  );
 
-    if (savedStarted === "true") setStarted(true);
-    if (savedCard) setCard(JSON.parse(savedCard));
-    
-    if (savedCalled) setCalled(JSON.parse(savedCalled));
-    if (savedLast) setLastNumber(JSON.parse(savedLast));
-  }, []);
-
+  // Start game handler
   const handleStart = () => {
     const newCard = generateCard();
-
     setStarted(true);
     setCard(newCard);
-
     localStorage.setItem("started", "true");
     localStorage.setItem("card", JSON.stringify(newCard));
   };
-  
 
-   const callNumber = async () => {
+  // Call next Bingo number
+  const callNumber = async () => {
     try {
       const res = await axios.get(`${API_URL}/number`);
       const number = res.data.number;
-
       const newCalled = [...called, number];
 
       setLastNumber(number);
@@ -60,15 +57,15 @@ function App() {
     }
   };
 
+  // Reset game handler
   const resetGame = async () => {
     try {
       await axios.get(`${API_URL}/reset`);
-
       const newCard = generateCard();
 
+      setCard(newCard);
       setCalled([]);
       setLastNumber(null);
-      setCard(newCard);
 
       localStorage.setItem("card", JSON.stringify(newCard));
       localStorage.removeItem("called");
@@ -79,6 +76,7 @@ function App() {
     }
   };
 
+  // Landing page before game starts
   if (!started) {
     return (
       <div style={{ textAlign: "center", marginTop: "80px" }}>
@@ -101,6 +99,7 @@ function App() {
     );
   }
 
+  // Bingo game UI
   return (
     <div style={{ textAlign: "center" }}>
       <h1>Bingo Demo</h1>
@@ -110,14 +109,12 @@ function App() {
         Reset Game
       </button>
 
-      <h2>
-        Last Called Number: {lastNumber ? lastNumber : "None"}
-      </h2>
+      <h2>Last Called Number: {lastNumber ?? "None"}</h2>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(5,60px)",
+          gridTemplateColumns: "repeat(5, 60px)",
           gap: "10px",
           justifyContent: "center",
           marginTop: "20px",
@@ -134,6 +131,18 @@ function App() {
               alignItems: "center",
               justifyContent: "center",
               fontWeight: "bold",
+              borderRadius: "8px",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+              transition: "transform 0.2s, box-shadow 0.2s",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.1)";
+              e.currentTarget.style.boxShadow = "0 5px 15px rgba(0,0,0,0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
             }}
           >
             {num}
