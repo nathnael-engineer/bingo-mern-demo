@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import confetti from "canvas-confetti";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
 const WIN_SOUND = "/win.mp3";
@@ -45,6 +46,14 @@ const announceNumber = (number) => {
   utterance.volume = 1;              // full volume
 
   window.speechSynthesis.speak(utterance);
+};
+
+const celebrateWin = () => {
+  confetti({
+    particleCount: 150,
+    spread: 90,
+    origin: { y: 0.6 }
+  });
 };
 
 function App() {
@@ -99,6 +108,7 @@ function App() {
       if (checkWin(card, newCalled)) {
         setNotification("🎉 Bingo! You won!");
         winAudio.play().catch(() => {});
+        celebrateWin();
         setGameOver(true);
       } 
       else if (newCalled.length === 75) {
@@ -276,7 +286,7 @@ function App() {
         {["B","I","N","G","O"].map((letter) => (
           <div key={letter}>{letter}</div>
         ))}
-        
+
         {card.map((num, i) => (
           <div
             key={i}
