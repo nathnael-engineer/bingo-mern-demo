@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
@@ -13,21 +13,21 @@ function generateCard() {
   return numbers;
 }
 
-// Check if the card has a winning row, column, or diagonal
+// Check for win
 function checkWin(card, called) {
   const isCalled = (num) => called.includes(num);
 
-  // Check rows
+  // Rows
   for (let r = 0; r < 5; r++) {
     if (card.slice(r * 5, r * 5 + 5).every(isCalled)) return true;
   }
 
-  // Check columns
+  // Columns
   for (let c = 0; c < 5; c++) {
     if ([0, 1, 2, 3, 4].map((i) => card[c + i * 5]).every(isCalled)) return true;
   }
 
-  // Check diagonals
+  // Diagonals
   if ([0, 6, 12, 18, 24].map((i) => card[i]).every(isCalled)) return true;
   if ([4, 8, 12, 16, 20].map((i) => card[i]).every(isCalled)) return true;
 
@@ -35,20 +35,20 @@ function checkWin(card, called) {
 }
 
 function App() {
-  // Helper for localStorage with fallback
   const getLocalStorage = (key, fallback) => {
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : fallback;
   };
 
-  // State initialization (prevents landing page flash)
+  // State
   const [started, setStarted] = useState(() => localStorage.getItem("started") === "true");
   const [card, setCard] = useState(() => getLocalStorage("card", generateCard()));
   const [called, setCalled] = useState(() => getLocalStorage("called", []));
   const [lastNumber, setLastNumber] = useState(() => getLocalStorage("lastNumber", null));
   const [gameOver, setGameOver] = useState(false);
+  const [notification, setNotification] = useState(""); // 🎯 notification text
 
-  // Start game handler
+  // Start game
   const handleStart = () => {
     const newCard = generateCard();
     setStarted(true);
@@ -57,7 +57,7 @@ function App() {
     localStorage.setItem("card", JSON.stringify(newCard));
   };
 
-  // Call next Bingo number
+  // Call number
   const callNumber = async () => {
     if (gameOver) return;
 
@@ -72,24 +72,21 @@ function App() {
       localStorage.setItem("called", JSON.stringify(newCalled));
       localStorage.setItem("lastNumber", JSON.stringify(number));
 
-      // Check for win
+      // Check win
       if (checkWin(card, newCalled)) {
-        alert("🎉 Bingo! You won!");
+        setNotification("🎉 Bingo! You won!");
         setGameOver(true);
-      }
-
-      // Check if all numbers called and no Bingo
-      if (newCalled.length === 75 && !checkWin(card, newCalled)) {
-        alert("😢 All numbers called. Game over!");
+      } else if (newCalled.length === 75) {
+        setNotification("😢 All numbers called. Game over!");
         setGameOver(true);
       }
     } catch (err) {
-      console.error("Error calling number:", err);
-      alert("Cannot reach backend API 😢");
+      console.error(err);
+      setNotification("⚠️ Cannot reach backend API");
     }
   };
 
-  // Reset game handler
+  // Reset game
   const resetGame = async () => {
     try {
       await axios.get(`${API_URL}/reset`);
@@ -99,15 +96,24 @@ function App() {
       setCalled([]);
       setLastNumber(null);
       setGameOver(false);
+      setNotification("");
 
       localStorage.setItem("card", JSON.stringify(newCard));
       localStorage.removeItem("called");
       localStorage.removeItem("lastNumber");
     } catch (err) {
-      console.error("Error resetting game:", err);
-      alert("Cannot reach backend API 😢");
+      console.error(err);
+      setNotification("⚠️ Cannot reach backend API");
     }
   };
+
+  // Auto-hide notifications
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   // Landing page
   if (!started) {
@@ -119,7 +125,7 @@ function App() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #111111, #1a1a1a)",
+          background: "linear-gradient(135deg, #111, #1a1a1a)",
           fontFamily: "Arial, sans-serif",
           color: "#fff",
         }}
@@ -129,27 +135,15 @@ function App() {
             background: "#0d0d0d",
             padding: "50px 70px",
             borderRadius: "12px",
-            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.6)",
+            boxShadow: "0 8px 25px rgba(0,0,0,0.6)",
             textAlign: "center",
             border: "1px solid #333",
           }}
         >
-          <h1
-            style={{
-              fontSize: "3rem",
-              marginBottom: "15px",
-              color: "#f0f0f0",
-            }}
-          >
+          <h1 style={{ fontSize: "3rem", marginBottom: "15px", color: "#f0f0f0" }}>
             🎉 Bingo Demo
           </h1>
-          <p
-            style={{
-              fontSize: "1.2rem",
-              marginBottom: "35px",
-              color: "#ccc",
-            }}
-          >
+          <p style={{ fontSize: "1.2rem", marginBottom: "35px", color: "#ccc" }}>
             Play online Bingo instantly! Challenge yourself or friends.
           </p>
           <button
@@ -168,7 +162,7 @@ function App() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "scale(1.08)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(255, 65, 108, 0.6)";
+              e.currentTarget.style.boxShadow = "0 8px 20px rgba(255,65,108,0.6)";
               e.currentTarget.style.filter = "drop-shadow(0 0 15px #ff416c)";
             }}
             onMouseLeave={(e) => {
@@ -186,7 +180,7 @@ function App() {
 
   // Bingo game UI
   return (
-    <div style={{ textAlign: "center" }}>
+    <div style={{ textAlign: "center", position: "relative" }}>
       <h1>Bingo Demo</h1>
 
       <button onClick={callNumber} disabled={gameOver}>
@@ -197,6 +191,37 @@ function App() {
       </button>
 
       <h2>Last Called Number: {lastNumber ?? "None"}</h2>
+
+      {/* Notification Box (slide & fade) */}
+      {notification && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%) translateY(-100%)",
+            background: "#111",
+            color: "#fff",
+            padding: "15px 25px",
+            borderRadius: "10px",
+            boxShadow: "0 5px 20px rgba(0,0,0,0.5)",
+            fontWeight: "bold",
+            zIndex: 1000,
+            transition: "transform 0.5s ease, opacity 0.5s ease",
+            opacity: 0,
+          }}
+          ref={(el) => {
+            if (el) {
+              requestAnimationFrame(() => {
+                el.style.transform = "translateX(-50%) translateY(20px)";
+                el.style.opacity = "1";
+              });
+            }
+          }}
+        >
+          {notification}
+        </div>
+      )}
 
       <div
         style={{
