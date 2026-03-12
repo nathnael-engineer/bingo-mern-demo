@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
+const NOTIFY_SOUND = "/notification.mp3"; // add your MP3 file to public folder
 
 // Generate a random Bingo card
 function generateCard() {
@@ -13,7 +14,7 @@ function generateCard() {
   return numbers;
 }
 
-// Check for win
+// Check if the card has a winning row, column, or diagonal
 function checkWin(card, called) {
   const isCalled = (num) => called.includes(num);
 
@@ -23,14 +24,22 @@ function checkWin(card, called) {
   }
   // Columns
   for (let c = 0; c < 5; c++) {
-    if ([0, 1, 2, 3, 4].map((i) => card[c + i * 5]).every(isCalled)) return true;
+    if ([0, 1, 2, 3, 4].map(i => card[c + i * 5]).every(isCalled)) return true;
   }
   // Diagonals
-  if ([0, 6, 12, 18, 24].map((i) => card[i]).every(isCalled)) return true;
-  if ([4, 8, 12, 16, 20].map((i) => card[i]).every(isCalled)) return true;
+  if ([0, 6, 12, 18, 24].map(i => card[i]).every(isCalled)) return true;
+  if ([4, 8, 12, 16, 20].map(i => card[i]).every(isCalled)) return true;
 
   return false;
 }
+
+// Speak number using browser TTS
+const speakNumber = (number) => {
+  const msg = new SpeechSynthesisUtterance(`Number ${number}`);
+  msg.rate = 1;
+  msg.pitch = 1;
+  window.speechSynthesis.speak(msg);
+};
 
 function App() {
   const getLocalStorage = (key, fallback) => {
@@ -38,17 +47,15 @@ function App() {
     return saved ? JSON.parse(saved) : fallback;
   };
 
-  const [started, setStarted] = useState(
-    () => localStorage.getItem("started") === "true"
-  );
+  // State
+  const [started, setStarted] = useState(() => localStorage.getItem("started") === "true");
   const [card, setCard] = useState(() => getLocalStorage("card", generateCard()));
   const [called, setCalled] = useState(() => getLocalStorage("called", []));
-  const [lastNumber, setLastNumber] = useState(() =>
-    getLocalStorage("lastNumber", null)
-  );
+  const [lastNumber, setLastNumber] = useState(() => getLocalStorage("lastNumber", null));
   const [gameOver, setGameOver] = useState(false);
   const [notification, setNotification] = useState("");
-  const audioRef = useRef(null);
+
+  const notifyAudio = new Audio(NOTIFY_SOUND);
 
   // Start game
   const handleStart = () => {
@@ -58,14 +65,13 @@ function App() {
     setCalled([]);
     setLastNumber(null);
     setGameOver(false);
-    setNotification("");
     localStorage.setItem("started", "true");
     localStorage.setItem("card", JSON.stringify(newCard));
     localStorage.removeItem("called");
     localStorage.removeItem("lastNumber");
   };
 
-  // Call next number
+  // Call number
   const callNumber = async () => {
     if (gameOver) return;
 
@@ -79,10 +85,13 @@ function App() {
       localStorage.setItem("called", JSON.stringify(newCalled));
       localStorage.setItem("lastNumber", JSON.stringify(number));
 
-      // Play sound
-      if (audioRef.current) audioRef.current.play();
+      // Play notification sound
+      notifyAudio.play().catch(() => {}); // ignore autoplay restrictions
 
-      // Win check
+      // Speak number
+      speakNumber(number);
+
+      // Check win
       if (checkWin(card, newCalled)) {
         setNotification("🎉 Bingo! You won!");
         setGameOver(true);
@@ -106,6 +115,7 @@ function App() {
       setLastNumber(null);
       setGameOver(false);
       setNotification("");
+
       localStorage.setItem("card", JSON.stringify(newCard));
       localStorage.removeItem("called");
       localStorage.removeItem("lastNumber");
@@ -115,7 +125,7 @@ function App() {
     }
   };
 
-  // Auto-hide notifications
+  // Auto-hide notification
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(""), 3000);
@@ -148,22 +158,10 @@ function App() {
             border: "1px solid #333",
           }}
         >
-          <h1
-            style={{
-              fontSize: "3rem",
-              marginBottom: "15px",
-              color: "#f0f0f0",
-            }}
-          >
+          <h1 style={{ fontSize: "3rem", marginBottom: "15px", color: "#f0f0f0" }}>
             🎉 Bingo Demo
           </h1>
-          <p
-            style={{
-              fontSize: "1.2rem",
-              marginBottom: "35px",
-              color: "#ccc",
-            }}
-          >
+          <p style={{ fontSize: "1.2rem", marginBottom: "35px", color: "#ccc" }}>
             Play online Bingo instantly! Challenge yourself or friends.
           </p>
           <button
@@ -198,11 +196,9 @@ function App() {
     );
   }
 
-  // Bingo UI
+  // Game UI
   return (
     <div style={{ textAlign: "center", position: "relative" }}>
-      <audio ref={audioRef} src="/ping.mp3" />
-
       <h1>Bingo Demo</h1>
 
       <button onClick={callNumber} disabled={gameOver}>
@@ -214,7 +210,7 @@ function App() {
 
       <h2>Last Called Number: {lastNumber ?? "None"}</h2>
 
-      {/* Sliding Notification */}
+      {/* Notification Box */}
       {notification && (
         <div
           style={{
@@ -245,7 +241,7 @@ function App() {
         </div>
       )}
 
-      {/* Bingo Card */}
+      {/* Bingo card */}
       <div
         style={{
           display: "grid",
