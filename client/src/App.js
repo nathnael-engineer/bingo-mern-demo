@@ -79,22 +79,55 @@ function App() {
   // Landing page before game starts
   if (!started) {
     return (
-      <div style={{ textAlign: "center", marginTop: "80px" }}>
-        <h1 style={{ fontSize: "3rem" }}>🎉 Bingo Demo</h1>
-        <p style={{ fontSize: "1.2rem" }}>
-          Play online Bingo instantly! Challenge yourself or friends.
-        </p>
-        <button
-          onClick={handleStart}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #f0f4ff, #dbeafe)",
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
+        <div
           style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            fontSize: "1.2rem",
-            cursor: "pointer",
+            background: "white",
+            padding: "40px 60px",
+            borderRadius: "12px",
+            boxShadow: "0 5px 20px rgba(0,0,0,0.1)",
+            textAlign: "center",
           }}
         >
-          Start Game
-        </button>
+          <h1 style={{ fontSize: "3rem", marginBottom: "10px" }}>🎉 Bingo Demo</h1>
+          <p style={{ fontSize: "1.2rem", marginBottom: "30px", color: "#333" }}>
+            Play online Bingo instantly! Challenge yourself or friends.
+          </p>
+          <button
+            onClick={handleStart}
+            style={{
+              padding: "12px 30px",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+              color: "white",
+              background: "#4f46e5",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "transform 0.2s, box-shadow 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            Start Game
+          </button>
+        </div>
       </div>
     );
   }
