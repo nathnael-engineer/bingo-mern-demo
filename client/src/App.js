@@ -63,7 +63,7 @@ function App() {
   };
 
   // State
-  const [started, setStarted] = useState(() => localStorage.getItem("started") === "true");
+  const [started, setStarted] = useState(false);
   const [card, setCard] = useState(() => getLocalStorage("card", generateCard()));
   const [called, setCalled] = useState(() => getLocalStorage("called", []));
   const [lastNumber, setLastNumber] = useState(() => getLocalStorage("lastNumber", null));
@@ -81,7 +81,6 @@ function App() {
     setCalled([]);
     setLastNumber(null);
     setGameOver(false);
-    localStorage.setItem("started", "true");
     localStorage.setItem("card", JSON.stringify(newCard));
     localStorage.removeItem("called");
     localStorage.removeItem("lastNumber");
