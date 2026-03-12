@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
-const NOTIFY_SOUND = "/notification.mp3";
 const WIN_SOUND = "/win.mp3";
 const GAMEOVER_SOUND = "/gameover.mp3";
 
@@ -62,7 +61,6 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [notification, setNotification] = useState("");
 
-  const notifyAudio = new Audio(NOTIFY_SOUND);
   const winAudio = new Audio(WIN_SOUND);
   const gameOverAudio = new Audio(GAMEOVER_SOUND);
 
@@ -93,9 +91,6 @@ function App() {
       setCalled(newCalled);
       localStorage.setItem("called", JSON.stringify(newCalled));
       localStorage.setItem("lastNumber", JSON.stringify(number));
-
-      // Play notification sound
-      notifyAudio.play().catch(() => {});
 
       // Speak number
       announceNumber(number);  
