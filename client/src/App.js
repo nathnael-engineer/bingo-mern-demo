@@ -13,47 +13,74 @@ function generateCard() {
 }
 
 function App() {
-  // Landing page state with localStorage
   const [started, setStarted] = useState(false);
+  const [card, setCard] = useState([]);
+  const [called, setCalled] = useState([]);
+  const [lastNumber, setLastNumber] = useState(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("started");
-    if (saved === "true") setStarted(true);
+    const savedStarted = localStorage.getItem("started");
+    const savedCard = localStorage.getItem("card");
+    const savedCalled = localStorage.getItem("called");
+    const savedLast = localStorage.getItem("lastNumber");
+
+    if (savedStarted === "true") setStarted(true);
+
+    if (savedCard) {
+      setCard(JSON.parse(savedCard));
+    } else {
+      const newCard = generateCard();
+      setCard(newCard);
+      localStorage.setItem("card", JSON.stringify(newCard));
+    }
+
+    if (savedCalled) setCalled(JSON.parse(savedCalled));
+    if (savedLast) setLastNumber(JSON.parse(savedLast));
   }, []);
 
   const handleStart = () => {
     setStarted(true);
     localStorage.setItem("started", "true");
   };
+  
 
-  // Bingo game state
-  const [card] = useState(generateCard());
-  const [called, setCalled] = useState([]);
-  const [lastNumber, setLastNumber] = useState(null);
-
-  const callNumber = async () => {
+   const callNumber = async () => {
     try {
       const res = await axios.get(`${API_URL}/number`);
-      setLastNumber(res.data.number);
-      setCalled([...called, res.data.number]);
+      const number = res.data.number;
+
+      const newCalled = [...called, number];
+
+      setLastNumber(number);
+      setCalled(newCalled);
+
+      localStorage.setItem("called", JSON.stringify(newCalled));
+      localStorage.setItem("lastNumber", JSON.stringify(number));
     } catch (err) {
       console.error("Error calling number:", err);
       alert("Cannot reach backend API 😢");
     }
   };
 
-   const resetGame = async () => {
+  const resetGame = async () => {
     try {
       await axios.get(`${API_URL}/reset`);
+
+      const newCard = generateCard();
+
       setCalled([]);
       setLastNumber(null);
+      setCard(newCard);
+
+      localStorage.setItem("card", JSON.stringify(newCard));
+      localStorage.removeItem("called");
+      localStorage.removeItem("lastNumber");
     } catch (err) {
       console.error("Error resetting game:", err);
       alert("Cannot reach backend API 😢");
     }
   };
 
-  // Landing page before starting game
   if (!started) {
     return (
       <div style={{ textAlign: "center", marginTop: "80px" }}>
@@ -76,7 +103,6 @@ function App() {
     );
   }
 
-   // Bingo game UI
   return (
     <div style={{ textAlign: "center" }}>
       <h1>Bingo Demo</h1>
