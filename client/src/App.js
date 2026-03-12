@@ -33,12 +33,17 @@ function checkWin(card, called) {
   return false;
 }
 
-// Speak number using browser TTS
-const speakNumber = (number) => {
-  const msg = new SpeechSynthesisUtterance(`Number ${number}`);
-  msg.rate = 1;
-  msg.pitch = 1;
-  window.speechSynthesis.speak(msg);
+// Voice announcement for called numbers
+const announceNumber = (number) => {
+  if (!window.speechSynthesis) return; // fallback if unsupported
+
+  const utterance = new SpeechSynthesisUtterance(`Number ${number}`);
+  utterance.lang = "en-US";         // English (US)
+  utterance.pitch = 1;               // natural pitch
+  utterance.rate = 0.9;              // slightly slower for clarity
+  utterance.volume = 1;              // full volume
+
+  window.speechSynthesis.speak(utterance);
 };
 
 function App() {
@@ -89,7 +94,7 @@ function App() {
       notifyAudio.play().catch(() => {}); // ignore autoplay restrictions
 
       // Speak number
-      speakNumber(number);
+      announceNumber(number);  
 
       // Check win
       if (checkWin(card, newCalled)) {
