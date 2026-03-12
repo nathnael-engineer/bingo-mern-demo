@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
-const NOTIFY_SOUND = "/notification.mp3"; // add your MP3 file to public folder
+const NOTIFY_SOUND = "/notification.mp3";
+const WIN_SOUND = "/win.mp3";
+const GAMEOVER_SOUND = "/gameover.mp3";
 
 // Generate a random Bingo card
 function generateCard() {
@@ -61,6 +63,8 @@ function App() {
   const [notification, setNotification] = useState("");
 
   const notifyAudio = new Audio(NOTIFY_SOUND);
+  const winAudio = new Audio(WIN_SOUND);
+  const gameOverAudio = new Audio(GAMEOVER_SOUND);
 
   // Start game
   const handleStart = () => {
@@ -91,7 +95,7 @@ function App() {
       localStorage.setItem("lastNumber", JSON.stringify(number));
 
       // Play notification sound
-      notifyAudio.play().catch(() => {}); // ignore autoplay restrictions
+      notifyAudio.play().catch(() => {});
 
       // Speak number
       announceNumber(number);  
@@ -99,9 +103,12 @@ function App() {
       // Check win
       if (checkWin(card, newCalled)) {
         setNotification("🎉 Bingo! You won!");
+        winAudio.play().catch(() => {});
         setGameOver(true);
-      } else if (newCalled.length === 75) {
+      } 
+      else if (newCalled.length === 75) {
         setNotification("😢 All numbers called. Game over!");
+        gameOverAudio.play().catch(() => {});
         setGameOver(true);
       }
     } catch (err) {
