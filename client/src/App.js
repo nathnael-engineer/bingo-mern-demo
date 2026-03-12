@@ -25,22 +25,20 @@ function App() {
     const savedLast = localStorage.getItem("lastNumber");
 
     if (savedStarted === "true") setStarted(true);
-
-    if (savedCard) {
-      setCard(JSON.parse(savedCard));
-    } else {
-      const newCard = generateCard();
-      setCard(newCard);
-      localStorage.setItem("card", JSON.stringify(newCard));
-    }
-
+    if (savedCard) setCard(JSON.parse(savedCard));
+    
     if (savedCalled) setCalled(JSON.parse(savedCalled));
     if (savedLast) setLastNumber(JSON.parse(savedLast));
   }, []);
 
   const handleStart = () => {
+    const newCard = generateCard();
+
     setStarted(true);
+    setCard(newCard);
+
     localStorage.setItem("started", "true");
+    localStorage.setItem("card", JSON.stringify(newCard));
   };
   
 
