@@ -160,25 +160,25 @@ function App() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #111, #1a1a1a)",
+          background: "#f8f9fa",
           fontFamily: "Arial, sans-serif",
-          color: "#fff",
+          color: "#111",
         }}
       >
         <div
           style={{
-            background: "#0d0d0d",
+            background: "#e0e0e0", 
             padding: "50px 70px",
             borderRadius: "12px",
-            boxShadow: "0 8px 25px rgba(0,0,0,0.6)",
+            boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
             textAlign: "center",
-            border: "1px solid #333",
+            border: "1px solid #ccc",
           }}
         >
-          <h1 style={{ fontSize: "3rem", marginBottom: "15px", color: "#f0f0f0" }}>
+          <h1 style={{ fontSize: "3rem", marginBottom: "15px", color: "#111" }}>
             🎉 Bingo Demo
           </h1>
-          <p style={{ fontSize: "1.2rem", marginBottom: "35px", color: "#ccc" }}>
+          <p style={{ fontSize: "1.2rem", marginBottom: "35px", color: "#333" }}>
             Play online Bingo instantly! Challenge yourself or friends.
           </p>
           <button
@@ -188,22 +188,19 @@ function App() {
               fontSize: "1.3rem",
               fontWeight: "bold",
               color: "#fff",
-              background: "linear-gradient(90deg, #ff416c, #ff4b2b)",
+              background: "linear-gradient(90deg, #4f46e5, #6366f1)",
               border: "none",
               borderRadius: "10px",
               cursor: "pointer",
               transition: "transform 0.2s, box-shadow 0.2s, filter 0.2s",
-              filter: "drop-shadow(0 0 5px #ff416c)",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "scale(1.08)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(255,65,108,0.6)";
-              e.currentTarget.style.filter = "drop-shadow(0 0 15px #ff416c)";
+              e.currentTarget.style.boxShadow = "0 8px 20px rgba(79,70,229,0.5)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "scale(1)";
               e.currentTarget.style.boxShadow = "none";
-              e.currentTarget.style.filter = "drop-shadow(0 0 5px #ff416c)";
             }}
           >
             Start Game
