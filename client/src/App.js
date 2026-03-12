@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const API_URL = "https://bingo-mern-demo.onrender.com";
@@ -21,12 +21,10 @@ function checkWin(card, called) {
   for (let r = 0; r < 5; r++) {
     if (card.slice(r * 5, r * 5 + 5).every(isCalled)) return true;
   }
-
   // Columns
   for (let c = 0; c < 5; c++) {
     if ([0, 1, 2, 3, 4].map((i) => card[c + i * 5]).every(isCalled)) return true;
   }
-
   // Diagonals
   if ([0, 6, 12, 18, 24].map((i) => card[i]).every(isCalled)) return true;
   if ([4, 8, 12, 16, 20].map((i) => card[i]).every(isCalled)) return true;
@@ -40,24 +38,34 @@ function App() {
     return saved ? JSON.parse(saved) : fallback;
   };
 
-  // State
-  const [started, setStarted] = useState(() => localStorage.getItem("started") === "true");
+  const [started, setStarted] = useState(
+    () => localStorage.getItem("started") === "true"
+  );
   const [card, setCard] = useState(() => getLocalStorage("card", generateCard()));
   const [called, setCalled] = useState(() => getLocalStorage("called", []));
-  const [lastNumber, setLastNumber] = useState(() => getLocalStorage("lastNumber", null));
+  const [lastNumber, setLastNumber] = useState(() =>
+    getLocalStorage("lastNumber", null)
+  );
   const [gameOver, setGameOver] = useState(false);
-  const [notification, setNotification] = useState(""); // 🎯 notification text
+  const [notification, setNotification] = useState("");
+  const audioRef = useRef(null);
 
   // Start game
   const handleStart = () => {
     const newCard = generateCard();
     setStarted(true);
     setCard(newCard);
+    setCalled([]);
+    setLastNumber(null);
+    setGameOver(false);
+    setNotification("");
     localStorage.setItem("started", "true");
     localStorage.setItem("card", JSON.stringify(newCard));
+    localStorage.removeItem("called");
+    localStorage.removeItem("lastNumber");
   };
 
-  // Call number
+  // Call next number
   const callNumber = async () => {
     if (gameOver) return;
 
@@ -68,11 +76,13 @@ function App() {
 
       setLastNumber(number);
       setCalled(newCalled);
-
       localStorage.setItem("called", JSON.stringify(newCalled));
       localStorage.setItem("lastNumber", JSON.stringify(number));
 
-      // Check win
+      // Play sound
+      if (audioRef.current) audioRef.current.play();
+
+      // Win check
       if (checkWin(card, newCalled)) {
         setNotification("🎉 Bingo! You won!");
         setGameOver(true);
@@ -91,13 +101,11 @@ function App() {
     try {
       await axios.get(`${API_URL}/reset`);
       const newCard = generateCard();
-
       setCard(newCard);
       setCalled([]);
       setLastNumber(null);
       setGameOver(false);
       setNotification("");
-
       localStorage.setItem("card", JSON.stringify(newCard));
       localStorage.removeItem("called");
       localStorage.removeItem("lastNumber");
@@ -140,10 +148,22 @@ function App() {
             border: "1px solid #333",
           }}
         >
-          <h1 style={{ fontSize: "3rem", marginBottom: "15px", color: "#f0f0f0" }}>
+          <h1
+            style={{
+              fontSize: "3rem",
+              marginBottom: "15px",
+              color: "#f0f0f0",
+            }}
+          >
             🎉 Bingo Demo
           </h1>
-          <p style={{ fontSize: "1.2rem", marginBottom: "35px", color: "#ccc" }}>
+          <p
+            style={{
+              fontSize: "1.2rem",
+              marginBottom: "35px",
+              color: "#ccc",
+            }}
+          >
             Play online Bingo instantly! Challenge yourself or friends.
           </p>
           <button
@@ -178,9 +198,11 @@ function App() {
     );
   }
 
-  // Bingo game UI
+  // Bingo UI
   return (
     <div style={{ textAlign: "center", position: "relative" }}>
+      <audio ref={audioRef} src="/ping.mp3" />
+
       <h1>Bingo Demo</h1>
 
       <button onClick={callNumber} disabled={gameOver}>
@@ -192,7 +214,7 @@ function App() {
 
       <h2>Last Called Number: {lastNumber ?? "None"}</h2>
 
-      {/* Notification Box (slide & fade) */}
+      {/* Sliding Notification */}
       {notification && (
         <div
           style={{
@@ -223,6 +245,7 @@ function App() {
         </div>
       )}
 
+      {/* Bingo Card */}
       <div
         style={{
           display: "grid",
